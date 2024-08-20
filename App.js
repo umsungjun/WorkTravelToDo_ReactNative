@@ -4,16 +4,19 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
+  TextInput,
+  // TouchableHighlight,
+  // TouchableWithoutFeedback,
 } from 'react-native';
 import { theme } from './colors';
 import { useState } from 'react';
 
 export default function App() {
   const [working, setWorking] = useState(true);
+  const [text, setText] = useState('');
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
+  const onChangeText = (payload) => setText(payload);
 
   return (
     <View style={styles.container}>
@@ -37,6 +40,13 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       </View>
+      <TextInput
+        autoCapitalize={true} /* 첫 단어 대문자 */
+        value={text}
+        onChangeText={onChangeText}
+        placeholder={working ? 'Add a To Do' : 'Where do you want to go?'}
+        style={styles.input}
+      />
     </View>
   );
 }
@@ -56,5 +66,13 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontWeight: 600,
     color: '#fff',
+  },
+  input: {
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 12.5,
+    borderRadius: 5,
+    marginTop: 20,
+    fontSize: 18,
   },
 });
