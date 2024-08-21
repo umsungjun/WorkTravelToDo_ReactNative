@@ -22,7 +22,7 @@ export default function App() {
   const onChangeText = (payload) => setText(payload);
   const addToDo = () => {
     if (text === '') return;
-    const newToDo = { ...toDos, [Date.now()]: { text, work: working } };
+    const newToDo = { ...toDos, [Date.now()]: { text, working } };
     setToDos(newToDo);
     setText('');
   };
@@ -60,11 +60,11 @@ export default function App() {
       />
       <ScrollView>
         {Object.keys(toDos).map((key) => {
-          return (
+          return toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
             </View>
-          );
+          ) : null;
         })}
       </ScrollView>
     </View>
