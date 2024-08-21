@@ -10,20 +10,46 @@ import {
   // TouchableWithoutFeedback,
 } from 'react-native';
 import { theme } from './colors';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@toDos';
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState('');
   const [toDos, setToDos] = useState({});
 
+  useEffect(() => {
+    loadToDos();
+  }, []);
+
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (payload) => setText(payload);
-  const addToDo = () => {
+  const savedToDos = async (toSave) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const loadToDos = async () => {
+    try {
+      const saveToDos = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saveToDos) {
+        setToDos(JSON.parse(saveToDos));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const addToDo = async () => {
     if (text === '') return;
     const newToDo = { ...toDos, [Date.now()]: { text, working } };
     setToDos(newToDo);
+    await savedToDos(newToDo);
     setText('');
   };
 
