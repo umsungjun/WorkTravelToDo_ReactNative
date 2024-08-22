@@ -100,7 +100,9 @@ export default function App() {
         returnKeyType="done"
         value={text}
         onChangeText={onChangeText}
-        placeholder={working ? 'Add a To Do' : 'Where do you want to go?'}
+        placeholder={
+          working ? 'What do you want to do?' : 'Where do you want to go?'
+        }
         style={styles.input}
       />
       <ScrollView>
