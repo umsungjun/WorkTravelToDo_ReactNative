@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Fontisto from '@expo/vector-icons/Fontisto';
 
 const STORAGE_KEY = '@toDos';
+const WORKING_KEY = '@working';
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -24,11 +25,29 @@ export default function App() {
   const [toDos, setToDos] = useState({});
 
   useEffect(() => {
+    loadWorking();
     loadToDos();
   }, []);
 
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  const savedWorking = async (working) => {
+    setWorking(working);
+    try {
+      await AsyncStorage.setItem(WORKING_KEY, working ? 'work' : 'travel');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const loadWorking = async () => {
+    try {
+      const working = await AsyncStorage.getItem(WORKING_KEY);
+      if (working === 'travel') {
+        setWorking(false);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const onChangeText = (payload) => setText(payload);
   const savedToDos = async (toSave) => {
     try {
@@ -50,7 +69,10 @@ export default function App() {
 
   const addToDo = async () => {
     if (text === '') return;
-    const newToDo = { ...toDos, [Date.now()]: { text, working } };
+    const newToDo = {
+      ...toDos,
+      [Date.now()]: { text, working, completed: false },
+    };
     setToDos(newToDo);
     await savedToDos(newToDo);
     setText('');
@@ -71,19 +93,25 @@ export default function App() {
       },
     ]);
   };
+  const toggleToDo = (key) => {
+    const newToDo = { ...toDos };
+    newToDo[key].completed = !newToDo[key].completed;
+    setToDos(newToDo);
+    savedToDos(newToDo);
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
-        <TouchableOpacity onPress={work}>
+        <TouchableOpacity onPress={() => savedWorking(true)}>
           <Text
             style={{ ...styles.btnText, color: working ? 'white' : theme.grey }}
           >
             Work
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={travel}>
+        <TouchableOpacity onPress={() => savedWorking(false)}>
           <Text
             style={{
               ...styles.btnText,
@@ -108,8 +136,28 @@ export default function App() {
       <ScrollView>
         {Object.keys(toDos).map((key) => {
           return toDos[key].working === working ? (
-            <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            <View style={styles.toDoBox} key={key}>
+              <View style={styles.toDo}>
+                <TouchableOpacity onPress={() => toggleToDo(key)}>
+                  <Fontisto
+                    name={`checkbox-${
+                      toDos[key].completed ? 'active' : 'passive'
+                    }`}
+                    size={20}
+                    color="white"
+                  />
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    ...styles.toDoText,
+                    textDecorationLine: `${
+                      toDos[key].completed ? 'line-through' : ''
+                    }`,
+                  }}
+                >
+                  {toDos[key].text}
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => deleteToDo(key)}>
                 <Fontisto name="trash" size={18} color="gray" />
               </TouchableOpacity>
@@ -145,16 +193,20 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     fontSize: 18,
   },
-  toDo: {
+  toDoBox: {
     backgroundColor: theme.grey,
     marginBottom: 15,
     paddingVertical: 15,
-    paddingLeft: 50,
-    paddingRight: 20,
+    paddingHorizontal: 20,
     borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  toDo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12.5,
   },
   toDoText: {
     color: '#fff',
